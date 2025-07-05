@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Tripi</string>
+    <string name="trip_image">Trip image</string>
+    <string name="trip_image_desc">Trip image</string>
+    <string name="trip_name_sample">Himalaya Adventure</string>
+    <string name="trip_date_sample">Mar 30 - Apr 5, 2024</string>
+    <string name="trip_location_sample">Nepal</string>
+    <string name="friends_count_sample">3 Friends</string>
+    <string name="places_count_sample">5 Places</string>
+</resources>

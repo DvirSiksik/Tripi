@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "993336307491",
+    "project_id": "tripi-a86a2",
+    "storage_bucket": "tripi-a86a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:993336307491:android:34e5a1ed47ab828a532696",
+        "android_client_info": {
+          "package_name": "com.example.tripi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGnNLyEJPw_LflPQaBzPbNQzXb5Eub0t8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
