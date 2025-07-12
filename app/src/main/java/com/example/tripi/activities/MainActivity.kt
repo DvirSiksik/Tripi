@@ -8,17 +8,22 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.tripi.R
 import com.example.tripi.adapters.TripsAdapter
+import com.example.tripi.adapters.TripsPagerAdapter
 import com.example.tripi.databinding.ActivityMainBinding
 import com.example.tripi.models.Trip
-import com.example.tripi.network.RetrofitInstance
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.*
 import kotlin.random.Random
+import com.example.tripi.network.RetrofitInstance
+import com.example.tripi.network.TripApiService
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var tripsAdapter: TripsAdapter
     private val tripsList = mutableListOf<Trip>()
+    private val selectedSuggestions = mutableListOf<Trip>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,9 +33,22 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
 
         setupTripsRecyclerView()
+        setupClosestTripsRecyclerView()
         setupBottomNavigation()
         setupListeners()
-        fetchTripsFromOpenTripMap()
+        fetchUpcomingTripsFromFirestore()
+        fetchTripsFromGooglePlaces()
+    }
+
+    private fun setupClosestTripsRecyclerView() {
+        binding.closestTripsViewPager.adapter = TripsPagerAdapter(tripsList) { trip ->
+            val intent = Intent(this, TripDetailsActivity::class.java).apply {
+                putExtra("TRIP_ID", trip.id)
+                putExtra("TRIP_NAME", trip.name)
+                putStringArrayListExtra("TRIP_IMAGES", ArrayList(trip.imageUrls))
+            }
+            startActivity(intent)
+        }
     }
 
     private fun setupTripsRecyclerView() {
@@ -43,11 +61,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.tripsRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@MainActivity)
-            adapter = tripsAdapter
-            addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-        }
+        // If you have a tripsRecyclerView somewhere else, set it up here.
+        // If not, you can remove or comment out this function.
     }
 
     private fun setupBottomNavigation() {
@@ -69,84 +84,91 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.addTripButton.setOnClickListener {
-            startActivity(Intent(this, CreateTripActivity::class.java))
-        }
-    }
-
-    private fun fetchTripsFromOpenTripMap() {
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                val lat = 31.7683
-                val lon = 35.2137
-
-                val response = RetrofitInstance.openTripApi.getPlacesNearby(
-                    longitude = lon,
-                    latitude = lat,
-                    categories = "natural,interesting_places,historic,architecture"
-                )
-
-                if (response.isSuccessful) {
-                    tripsList.clear()
-
-                    val features = response.body()?.features ?: emptyList()
-
-                    val deferredTrips = features.map { feature ->
-                        async(Dispatchers.IO) {
-                            try {
-                                val detailsResp = RetrofitInstance.openTripApi.getPlaceDetails(feature.xid)
-                                val details = detailsResp.body()
-
-                                val imageUrl = details?.preview?.source
-                                    ?: getWikimediaImageUrl(details?.wikidata)
-
-                                Trip(
-                                    id = feature.xid,
-                                    name = feature.properties.name.ifBlank { "Unnamed Place" },
-                                    startDate = Timestamp.now(),
-                                    endDate = Timestamp.now(),
-                                    lat = feature.geometry.coordinates[1],
-                                    lon = feature.geometry.coordinates[0],
-                                    imageUrls = listOfNotNull(imageUrl),
-                                    description = details?.wikipedia_extracts?.text ?: "No description available.",
-                                    durationMinutes = Random.nextInt(45, 180),
-                                    categories = feature.properties.kinds?.split(",") ?: emptyList()
-                                )
-                            } catch (e: Exception) {
-                                Log.e("MainActivity", "Error fetching place details: ${e.message}")
-                                null
-                            }
-                        }
-                    }
-
-                    val trips = deferredTrips.awaitAll().filterNotNull()
-                    tripsList.addAll(trips)
-                    tripsAdapter.notifyDataSetChanged()
-
-                } else {
-                    Log.e("MainActivity", "Failed to load places: ${response.code()} ${response.message()}")
-                }
-            } catch (e: Exception) {
-                Log.e("MainActivity", "API Error: ${e.message}")
+            if (selectedSuggestions.isNotEmpty()) {
+                val intent = Intent(this, CreateTripActivity::class.java)
+                intent.putParcelableArrayListExtra("selectedRoutes", ArrayList(selectedSuggestions))
+                startActivity(intent)
+            } else {
+                startActivity(Intent(this, CreateTripActivity::class.java))
             }
         }
     }
 
-    private suspend fun getWikimediaImageUrl(wikidataId: String?): String? {
-        if (wikidataId.isNullOrBlank()) return null
+    private fun fetchTripsFromGooglePlaces() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val api = RetrofitInstance.googlePlacesRetrofit.create(TripApiService::class.java)
+                val appContext = applicationContext
+                val apiKey = appContext.packageManager
+                    .getApplicationInfo(appContext.packageName, android.content.pm.PackageManager.GET_META_DATA)
+                    .metaData.getString("com.google.android.geo.API_KEY")
 
-        return try {
-            val response = RetrofitInstance.wikimediaApi.getWikimediaImage(
-                titles = "File:$wikidataId.jpg"
-            )
-            val pages = response.body()?.query?.pages
-            pages?.values?.firstOrNull()
-                ?.imageinfo?.firstOrNull()
-                ?.url
-        } catch (e: Exception) {
-            Log.e("MainActivity", "Wikimedia API error: ${e.message}")
-            null
+                val response = api.getRecommendedTrips(apiKey = apiKey ?: "")
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    val googleTrips = body?.results?.take(20)?.map { result ->
+                        Trip(
+                            id = result.name ?: "Unknown",
+                            name = result.name ?: "Unnamed",
+                            startDate = Timestamp.now(),
+                            endDate = Timestamp.now(),
+                            lat = result.geometry?.location?.lat ?: 0.0,
+                            lon = result.geometry?.location?.lng ?: 0.0,
+                            imageUrls = result.photos?.map {
+                                "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${it.photo_reference}&key=$apiKey"
+                            } ?: emptyList(),
+                            description = result.formatted_address ?: "",
+                            durationMinutes = 120
+                        )
+                    } ?: emptyList()
+
+                    withContext(Dispatchers.Main) {
+                        selectedSuggestions.clear()
+                        selectedSuggestions.addAll(googleTrips)
+
+                        tripsAdapter = TripsAdapter(selectedSuggestions) { trip ->
+                            val intent = Intent(this@MainActivity, TripDetailsActivity::class.java).apply {
+                                putExtra("TRIP_ID", trip.id)
+                                putExtra("TRIP_NAME", trip.name)
+                                putStringArrayListExtra("TRIP_IMAGES", ArrayList(trip.imageUrls))
+                            }
+                            startActivity(intent)
+                        }
+
+                        binding.suggestionsRecyclerView.apply {
+                            adapter = tripsAdapter
+                            layoutManager = LinearLayoutManager(
+                                this@MainActivity,
+                                LinearLayoutManager.HORIZONTAL,
+                                false
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Google Places API failed: ${e.message}")
+            }
         }
     }
+    private fun fetchUpcomingTripsFromFirestore() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        FirebaseFirestore.getInstance().collection("trips")
+            .whereArrayContains("sharedWith", userId)
+            .get()
+            .addOnSuccessListener { result ->
+                val upcomingTrips = result.documents.mapNotNull { doc ->
+                    doc.toObject(Trip::class.java)?.copy(id = doc.id)
+                }.sortedBy { it.startDate }
+                tripsList.clear()
+                tripsList.addAll(upcomingTrips)
+                // Update ViewPager adapter
+                (binding.closestTripsViewPager.adapter as? TripsPagerAdapter)?.notifyDataSetChanged()
+            }
+            .addOnFailureListener { e ->
+                Log.e("MainActivity", "Failed to fetch trips from Firestore: ${e.message}")
+            }
+    }
+
     private fun String.capitalizeWords(): String {
         return split(" ").joinToString(" ") { word ->
             word.replaceFirstChar { firstChar ->

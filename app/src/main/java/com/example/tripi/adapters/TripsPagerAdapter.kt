@@ -4,19 +4,19 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.tripi.databinding.ItemTripBinding
+import com.example.tripi.databinding.ItemTripPagerBinding
 import com.example.tripi.models.Trip
 import com.example.tripi.R
 
-class TripsAdapter(
+class TripsPagerAdapter(
     private val trips: List<Trip>,
     private val onItemClick: (Trip) -> Unit
-) : RecyclerView.Adapter<TripsAdapter.TripViewHolder>() {
+) : RecyclerView.Adapter<TripsPagerAdapter.TripViewHolder>() {
 
-    inner class TripViewHolder(val binding: ItemTripBinding) : RecyclerView.ViewHolder(binding.root)
+    inner class TripViewHolder(val binding: ItemTripPagerBinding) : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TripViewHolder {
-        val binding = ItemTripBinding.inflate(
+        val binding = ItemTripPagerBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
@@ -32,7 +32,6 @@ class TripsAdapter(
             tripDescription.text = trip.description
             tripCategories.text = trip.categories.take(3).joinToString(" • ")
 
-            // Load only the first image URL if available, else null
             val imageUrl = trip.imageUrls.firstOrNull()
             Glide.with(root.context)
                 .load(imageUrl)
@@ -44,5 +43,5 @@ class TripsAdapter(
         }
     }
 
-    override fun getItemCount() = trips.size
+    override fun getItemCount(): Int = trips.size
 }
