@@ -1,7 +1,6 @@
 package com.example.tripi.models
 
 import android.os.Parcelable
-import com.example.tripi.R
 import com.google.firebase.Timestamp
 import kotlinx.parcelize.Parcelize
 
@@ -13,11 +12,11 @@ data class Trip(
     val endDate: Timestamp = Timestamp.now(),
     val lat: Double = 0.0,
     val lon: Double = 0.0,
-    val userId: String = "",
+    val imageUrls: List<String> = emptyList(),
     val description: String = "",
-    val durationMinutes: Int = 90,
-    val city: String = "",
+    val durationMinutes: Int = 60,
+    val categories: List<String> = emptyList(),
+    val points: List<Map<String, Double>> = emptyList(),
     val sharedWith: List<String> = emptyList(),
-    val imageUrl: String = "",
-    val imageRes: Int = R.drawable.ic_trip_placeholder
+    val creatorId: String = ""
 ) : Parcelable

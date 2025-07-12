@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Tripi</string>
     <string name="trip_image">Trip image</string>
+    <string name="no_description">No description available</string>
     <string name="trip_image_desc">Trip image</string>
     <string name="trip_name_sample">Himalaya Adventure</string>
     <string name="trip_date_sample">Mar 30 - Apr 5, 2024</string>

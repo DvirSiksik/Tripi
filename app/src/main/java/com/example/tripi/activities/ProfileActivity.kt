@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
+import com.example.tripi.R
 import com.example.tripi.databinding.ActivityProfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -59,4 +60,21 @@ class ProfileActivity : AppCompatActivity() {
             // Implement profile editing
         }
     }
+
+//    private fun setupBottomNavigation() {
+//        binding.bottomNavigation.setOnItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.navigation_home -> {
+//                    startActivity(Intent(this, MyTripsActivity::class.java))
+//                    true
+//                }
+//                R.id.navigation_trips -> true
+//                R.id.navigation_profile -> {
+//                    startActivity(Intent(this, ProfileActivity::class.java))
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
+//    }
 }
