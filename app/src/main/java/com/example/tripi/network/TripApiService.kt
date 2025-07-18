@@ -1,5 +1,6 @@
 package com.example.tripi.network
 
+import android.R
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -11,13 +12,22 @@ interface TripApiService {
         @Query("query") query: String = "attractions in Israel",
         @Query("key") apiKey: String = "AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk"
     ): Response<GooglePlacesResponse>
+    @GET("textsearch/json")
+    suspend fun searchPlaces(
+        @Query("query") query: String,
+        @Query("key") apiKey: String= "AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk",
+        @Query("language") language: String = "he",
+        @Query("region") region: String = "il"
+    ): Response<GooglePlacesResponse>
 }
 
 data class GooglePlacesResponse(
+    val status: String?,
     val results: List<GooglePlaceResult>
 )
 
 data class GooglePlaceResult(
+    val place_id:String?,
     val name: String?,
     val formatted_address: String?,
     val rating: Float?,

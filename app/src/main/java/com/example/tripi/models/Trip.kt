@@ -18,5 +18,6 @@ data class Trip(
     val categories: List<String> = emptyList(),
     val points: List<Map<String, Double>> = emptyList(),
     val sharedWith: List<String> = emptyList(),
-    val creatorId: String = ""
+    val creatorId: String = "",
+    val includedTrips: List<String> = emptyList()
 ) : Parcelable

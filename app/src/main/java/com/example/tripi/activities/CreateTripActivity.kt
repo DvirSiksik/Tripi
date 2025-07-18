@@ -1,20 +1,23 @@
 package com.example.tripi.activities
 
 import android.app.DatePickerDialog
-import android.content.Intent
 import android.location.Location
-import android.net.Uri
 import android.os.Bundle
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
-import com.example.tripi.R
 import com.example.tripi.adapters.ImagePagerAdapter
+import com.example.tripi.adapters.SelectedTripsAdapter
+import com.example.tripi.adapters.TripSearchAdapter
 import com.example.tripi.databinding.ActivityCreateTripBinding
 import com.example.tripi.models.Trip
+import com.example.tripi.models.TripSearchResult
+import com.example.tripi.network.GooglePhoto
+import com.example.tripi.network.GooglePlaceResult
+import com.example.tripi.network.PlacesClient
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -24,28 +27,35 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
+import com.example.tripi.R
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
-import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.UUID
+import android.util.Log
 
 class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityCreateTripBinding
     private lateinit var googleMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var db: FirebaseFirestore
-    private lateinit var adapter: ImagePagerAdapter
+    private lateinit var imageAdapter: ImagePagerAdapter
+    private lateinit var searchAdapter: TripSearchAdapter
+    private lateinit var selectedTripsAdapter: SelectedTripsAdapter
+
     private val calendar = Calendar.getInstance()
     private val pointsOfInterest = mutableListOf<LatLng>()
+    private val searchResults = mutableListOf<TripSearchResult>()
+    private val selectedTrips = mutableListOf<TripSearchResult>()
 
-    // ActivityResultLauncher for picking multiple images
     private val pickImages = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        uris?.forEach { uri ->
-            adapter.addImage(uri)
-        }
+        uris?.forEach { uri -> imageAdapter.addImage(uri) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +69,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
         setupMap()
         setupDatePickers()
         setupImageGallery()
+        setupSearchFunctionality()
         setupListeners()
     }
 
@@ -69,13 +80,11 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(map: GoogleMap) {
         googleMap = map
-
         googleMap.setOnMapClickListener { latLng ->
             pointsOfInterest.add(latLng)
             googleMap.addMarker(MarkerOptions().position(latLng))
             redrawPolyline()
         }
-
         getLastKnownLocation()
     }
 
@@ -85,11 +94,12 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             googleMap.addMarker(MarkerOptions().position(point))
         }
         if (pointsOfInterest.size >= 2) {
-            val addPolyline = googleMap.addPolyline(
+            googleMap.addPolyline(
                 PolylineOptions()
                     .addAll(pointsOfInterest)
                     .width(8f)
-                    .color(resources.getColor(R.color.purple_500, null)))
+                    .color(resources.getColor(R.color.purple_500, null))
+            )
         }
     }
 
@@ -112,30 +122,29 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun showDatePicker(isStartDate: Boolean) {
-        DatePickerDialog(
-            this,
-            { _, year, month, day ->
-                calendar.set(year, month, day)
-                val dateStr = "$day/${month + 1}/$year"
-                if (isStartDate) binding.startDateButton.text = dateStr
-                else binding.endDateButton.text = dateStr
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+        DatePickerDialog(this, { _, year, month, day ->
+            calendar.set(year, month, day)
+            val dateStr = "$day/${month + 1}/$year"
+            if (isStartDate) binding.startDateButton.text = dateStr
+            else binding.endDateButton.text = dateStr
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
     }
 
     private fun setupImageGallery() {
-        adapter = ImagePagerAdapter { position ->
-            adapter.removeImage(position)
-        }
-
-        binding.imageViewPager.adapter = adapter
+        imageAdapter = ImagePagerAdapter { position -> imageAdapter.removeImage(position) }
+        binding.imageViewPager.adapter = imageAdapter
         binding.dotsIndicator.attachTo(binding.imageViewPager)
-
-        // Set orientation for horizontal scrolling
         binding.imageViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+    }
+
+    private fun setupSearchFunctionality() {
+        searchAdapter = TripSearchAdapter(mutableListOf()) { trip -> addSelectedTrip(trip) }
+        binding.searchResultsRecyclerView.adapter = searchAdapter
+        binding.searchResultsRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        selectedTripsAdapter = SelectedTripsAdapter(selectedTrips) { trip -> removeSelectedTrip(trip) }
+        binding.selectedTripsRecyclerView.adapter = selectedTripsAdapter
+        binding.selectedTripsRecyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     private fun setupListeners() {
@@ -143,13 +152,112 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             Toast.makeText(this, "Tap the map to add points", Toast.LENGTH_SHORT).show()
         }
 
-        binding.saveButton.setOnClickListener {
-            saveTrip()
+        binding.saveButton.setOnClickListener { saveTrip() }
+        binding.selectImageButton.setOnClickListener { pickImages.launch(arrayOf("image/*")) }
+        binding.searchButton.setOnClickListener { performSearch() }
+
+        binding.searchEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                performSearch()
+                true
+            } else false
+        }
+    }
+
+    private fun performSearch() {
+        val query = binding.searchEditText.text.toString()
+        if (query.isBlank()) {
+            Toast.makeText(this, "Please enter search query", Toast.LENGTH_SHORT).show()
+            return
         }
 
-        binding.selectImageButton.setOnClickListener {
-            pickImages.launch(arrayOf("image/*"))
+        binding.searchInputLayout.isEnabled = false
+        binding.searchButton.isEnabled = false
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = PlacesClient.apiService.searchPlaces(query = query)
+                Log.d("PlacesAPI", "URL: ${response.raw().request().url()}")
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        val body = response.body()
+                        Log.d("PlacesAPI", "Status: ${body?.status}")
+                        Log.d("PlacesAPI", "Results: ${body?.results?.size}")
+                        if (body?.status != "OK") {
+                            Toast.makeText(this@CreateTripActivity, "Places API error: ${'$'}{body?.status}", Toast.LENGTH_SHORT).show()
+                            return@withContext
+                        }
+
+                        val places = body.results
+                        if (places.isEmpty()) {
+                            Toast.makeText(this@CreateTripActivity, "לא נמצאו תוצאות", Toast.LENGTH_SHORT).show()
+                            return@withContext
+                        }
+
+                        val tripResults = places.map { place ->
+                            TripSearchResult(
+                                id = place.place_id ?: UUID.randomUUID().toString(),
+                                name = place.name ?: "Unknown Place",
+                                location = place.formatted_address ?: "",
+                                duration = calculateDuration(place),
+                                rating = place.rating,
+                                description = "Tourist attraction in Israel",
+                                imageUrl = getPhotoUrl(place.photos?.firstOrNull())
+                            )
+                        }
+                        searchAdapter.updateData(tripResults)
+
+                        searchResults.clear()
+                        searchAdapter.updateData(tripResults)
+                        searchAdapter.notifyDataSetChanged()
+                    } else {
+                        val error = response.errorBody()?.string()
+                        Log.e("PlacesAPI", "HTTP error ${'$'}{response.code()}: ${'$'}error")
+                        Toast.makeText(this@CreateTripActivity, "שגיאה: ${'$'}{response.message()}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Log.e("PlacesAPI", "Exception: ${'$'}{e.message}", e)
+                    Toast.makeText(this@CreateTripActivity, "שגיאת רשת: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    binding.searchInputLayout.isEnabled = true
+                    binding.searchButton.isEnabled = true
+                }
+            }
         }
+    }
+
+    private fun calculateDuration(place: GooglePlaceResult): Int {
+        return when {
+            place.name?.contains("museum", ignoreCase = true) == true -> 120
+            place.name?.contains("park", ignoreCase = true) == true -> 90
+            else -> 60
+        }
+    }
+
+    private fun getPhotoUrl(photo: GooglePhoto?): String? {
+        return photo?.let {
+            "https://maps.googleapis.com/maps/api/place/photo" +
+                    "?maxwidth=400" +
+                    "&photoreference=${'$'}{it.photo_reference}" +
+                    "&key=AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk"
+        }
+    }
+
+    private fun addSelectedTrip(trip: TripSearchResult) {
+        if (selectedTrips.none { it.id == trip.id }) {
+            selectedTrips.add(trip)
+            selectedTripsAdapter.notifyDataSetChanged()
+            Toast.makeText(this, "${'$'}{trip.name} added to your trip", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun removeSelectedTrip(trip: TripSearchResult) {
+        selectedTrips.removeAll { it.id == trip.id }
+        selectedTripsAdapter.notifyDataSetChanged()
     }
 
     private fun saveTrip() {
@@ -170,7 +278,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val tripId = UUID.randomUUID().toString()
 
-        if (adapter.itemCount == 0) {
+        if (imageAdapter.itemCount == 0) {
             createTrip(tripId, userId, tripName, description, duration, emptyList())
             return
         }
@@ -193,6 +301,8 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             .map { it.trim() }
             .filter { it.isNotEmpty() }
 
+        val includedTrips = selectedTrips.map { it.id }
+
         val trip = Trip(
             id = tripId,
             name = tripName,
@@ -205,7 +315,8 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             durationMinutes = duration,
             points = pointsOfInterest.map { mapOf("lat" to it.latitude, "lon" to it.longitude) },
             sharedWith = (sharedEmails + userId).distinct(),
-            creatorId = userId
+            creatorId = userId,
+            includedTrips = includedTrips
         )
 
         db.collection("trips").document(tripId).set(trip)
@@ -214,17 +325,22 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
                 finish()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error creating trip: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error creating trip: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun uploadImagesToFirebaseStorage(tripId: String, onComplete: (List<String>) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("trip_images/$tripId/")
+        val storageRef = FirebaseStorage.getInstance().reference.child("trip_images/${'$'}tripId/")
         val uploadedUrls = mutableListOf<String>()
-        val images = adapter.getImages()
+        val images = imageAdapter.getImages()
+
+        if (images.isEmpty()) {
+            onComplete(emptyList())
+            return
+        }
 
         for ((index, uri) in images.withIndex()) {
-            val fileRef = storageRef.child("image_$index.jpg")
+            val fileRef = storageRef.child("image_${'$'}index.jpg")
             fileRef.putFile(uri)
                 .continueWithTask { task ->
                     if (!task.isSuccessful) throw task.exception ?: Exception("Upload failed")
@@ -237,7 +353,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "Failed to upload image: ${it.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to upload image: ${'$'}{it.message}", Toast.LENGTH_SHORT).show()
                 }
         }
     }
