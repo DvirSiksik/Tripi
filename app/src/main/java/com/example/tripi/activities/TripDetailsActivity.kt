@@ -3,9 +3,11 @@ package com.example.tripi.activities
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -15,30 +17,42 @@ import com.example.tripi.R
 import com.example.tripi.adapters.ImagePagerAdapter
 import com.example.tripi.databinding.ActivityTripDetailsBinding
 import com.example.tripi.models.Trip
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.*
 import com.google.android.material.tabs.TabLayoutMediator
-import com.google.firebase.firestore.GeoPoint
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 
-class TripDetailsActivity : AppCompatActivity() {
+class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
+
     private lateinit var binding: ActivityTripDetailsBinding
     private lateinit var imageAdapter: ImagePagerAdapter
     private var trip: Trip? = null
+    private lateinit var googleMap: GoogleMap
 
     private val pickImages = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         val tripId = trip?.id ?: return@registerForActivityResult
         val storageRef = FirebaseStorage.getInstance().reference.child("trip_images/$tripId/")
+        val tripDocRef = FirebaseFirestore.getInstance().collection("trips").document(tripId)
 
         uris?.forEachIndexed { index, uri ->
             val fileRef = storageRef.child("new_image_${System.currentTimeMillis()}_$index.jpg")
-            fileRef.putFile(uri).continueWithTask { task ->
-                if (!task.isSuccessful) throw task.exception ?: Exception("Upload failed")
-                fileRef.downloadUrl
-            }.addOnSuccessListener { url ->
-                imageAdapter.addImage(Uri.parse(url.toString()))
-                Toast.makeText(this, "Uploaded image", Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener {
-                Toast.makeText(this, "Upload failed: ${it.message}", Toast.LENGTH_SHORT).show()
-            }
+            fileRef.putFile(uri)
+                .continueWithTask { task ->
+                    if (!task.isSuccessful) throw task.exception ?: Exception("Upload failed")
+                    fileRef.downloadUrl
+                }.addOnSuccessListener { url ->
+                    val urlStr = url.toString()
+                    imageAdapter.addImage(Uri.parse(urlStr))
+                    tripDocRef.update("imageUrls", FieldValue.arrayUnion(urlStr))
+                    Toast.makeText(this, "Uploaded image", Toast.LENGTH_SHORT).show()
+                }.addOnFailureListener {
+                    Toast.makeText(this, "Upload failed: ${it.message}", Toast.LENGTH_SHORT).show()
+                }
         }
     }
 
@@ -59,6 +73,10 @@ class TripDetailsActivity : AppCompatActivity() {
 
         setupBottomNavigation()
         setupListeners()
+
+        // Load the map
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
+        mapFragment.getMapAsync(this)
     }
 
     private fun displayTripDetails(trip: Trip) {
@@ -66,34 +84,56 @@ class TripDetailsActivity : AppCompatActivity() {
         binding.tripNameTextView.text = trip.name
         binding.descriptionTextView.text = trip.description.ifBlank { "No description available." }
 
-
         val imageUris = trip.imageUrls.map { Uri.parse(it) }.toMutableList()
         imageAdapter = ImagePagerAdapter(imageUris)
         binding.imageViewPager.adapter = imageAdapter
         binding.imageViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
-
         TabLayoutMediator(binding.tabLayout, binding.imageViewPager) { tab, _ ->
             tab.text = ""
         }.attach()
-
-        loadStaticMap(GeoPoint(trip.lat, trip.lon))
     }
 
-    private fun loadStaticMap(location: GeoPoint) {
-        val lat = location.latitude
-        val lon = location.longitude
-        val staticMapUrl = "https://maps.googleapis.com/maps/api/staticmap" +
-                "?center=$lat,$lon" +
-                "&zoom=13" +
-                "&size=600x300" +
-                "&markers=color:red%7C$lat,$lon" +
-                "&key=AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk"
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+        trip?.let { drawTripRoute(it.points) }
+    }
 
-        Glide.with(this)
-            .load(staticMapUrl)
-            .placeholder(R.drawable.ic_trip_placeholder)
-            .into(binding.mapImageView)
+    private fun drawTripRoute(points: List<Map<String, Double>>) {
+        if (points.isEmpty()) return
+
+        val polylineOptions = PolylineOptions()
+            .color(Color.BLUE)
+            .width(6f)
+
+        val boundsBuilder = LatLngBounds.Builder()
+        var addedAtLeastOne = false
+
+        points.forEachIndexed { index, point ->
+            val lat = point["lat"]
+            val lng = point["lng"]?: point["lon"]
+
+            if (lat != null && lng != null) {
+                val latLng = LatLng(lat, lng)
+                polylineOptions.add(latLng)
+                googleMap.addMarker(
+                    MarkerOptions()
+                        .position(latLng)
+                        .title("Point ${index + 1}")
+                )
+                boundsBuilder.include(latLng)
+                addedAtLeastOne = true
+            }
+        }
+
+        if (addedAtLeastOne) {
+            googleMap.addPolyline(polylineOptions)
+            val bounds = boundsBuilder.build()
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+        } else {
+            Toast.makeText(this, "No valid points to display on map", Toast.LENGTH_SHORT).show()
+        }
+        Log.d("TripPointsDebug", "Points: $points")
     }
 
     private fun setupListeners() {
@@ -109,7 +149,10 @@ class TripDetailsActivity : AppCompatActivity() {
                 .setTitle("trip_image.jpg")
                 .setDescription("Downloading trip image")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_PICTURES, "trip_image_${System.currentTimeMillis()}.jpg")
+                .setDestinationInExternalPublicDir(
+                    Environment.DIRECTORY_PICTURES,
+                    "trip_image_${System.currentTimeMillis()}.jpg"
+                )
 
             val downloadManager = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadManager.enqueue(request)
