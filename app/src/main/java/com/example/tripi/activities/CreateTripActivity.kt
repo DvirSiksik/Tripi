@@ -1,7 +1,10 @@
 package com.example.tripi.activities
 
+import android.Manifest
 import android.app.DatePickerDialog
+import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
@@ -39,6 +42,14 @@ import kotlinx.coroutines.withContext
 import java.util.Calendar
 import java.util.UUID
 import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.gms.maps.model.CircleOptions
+import android.os.Looper
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationResult
+
 
 class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var binding: ActivityCreateTripBinding
@@ -65,6 +76,10 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
 
         db = FirebaseFirestore.getInstance()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        ActivityCompat.requestPermissions(this, arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ), 1)
 
         setupMap()
         setupDatePickers()
@@ -85,7 +100,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             googleMap.addMarker(MarkerOptions().position(latLng))
             redrawPolyline()
         }
-        getLastKnownLocation()
+        getLastKnownLocationAndZoom()
     }
 
     private fun redrawPolyline() {
@@ -103,17 +118,38 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun getLastKnownLocation() {
-        try {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-                location?.let {
-                    val latLng = LatLng(it.latitude, it.longitude)
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 12f))
+    private fun getLastKnownLocationAndZoom() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Location permission not received", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval = 1000
+            fastestInterval = 500
+            numUpdates = 1
+        }
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                val location = result.lastLocation
+                if (location != null) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 11f))
+
+                    googleMap.addCircle(
+                        CircleOptions()
+                            .center(latLng)
+                            .radius(80000.0)
+                            .strokeWidth(4f)
+                    )
+                } else {
+                    Toast.makeText(this@CreateTripActivity, "Location is null", Toast.LENGTH_SHORT).show()
                 }
             }
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-        }
+        }, Looper.getMainLooper())
     }
 
     private fun setupDatePickers() {
@@ -184,17 +220,11 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
                         Log.d("PlacesAPI", "Status: ${body?.status}")
                         Log.d("PlacesAPI", "Results: ${body?.results?.size}")
                         if (body?.status != "OK") {
-                            Toast.makeText(this@CreateTripActivity, "Places API error: ${'$'}{body?.status}", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@CreateTripActivity, "Places API error: ${body?.status}", Toast.LENGTH_SHORT).show()
                             return@withContext
                         }
 
-                        val places = body.results
-                        if (places.isEmpty()) {
-                            Toast.makeText(this@CreateTripActivity, "לא נמצאו תוצאות", Toast.LENGTH_SHORT).show()
-                            return@withContext
-                        }
-
-                        val tripResults = places.map { place ->
+                        val tripResults = body.results.map { place ->
                             TripSearchResult(
                                 id = place.place_id ?: UUID.randomUUID().toString(),
                                 name = place.name ?: "Unknown Place",
@@ -202,24 +232,24 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
                                 duration = calculateDuration(place),
                                 rating = place.rating,
                                 description = "Tourist attraction in Israel",
-                                imageUrl = getPhotoUrl(place.photos?.firstOrNull())
+                                imageUrl = getPhotoUrl(place.photos?.firstOrNull()),
+                                lat = place.geometry?.location?.lat,
+                                lon = place.geometry?.location?.lng
                             )
                         }
                         searchAdapter.updateData(tripResults)
-
                         searchResults.clear()
-                        searchAdapter.updateData(tripResults)
-                        searchAdapter.notifyDataSetChanged()
+                        searchResults.addAll(tripResults)
                     } else {
                         val error = response.errorBody()?.string()
-                        Log.e("PlacesAPI", "HTTP error ${'$'}{response.code()}: ${'$'}error")
-                        Toast.makeText(this@CreateTripActivity, "שגיאה: ${'$'}{response.message()}", Toast.LENGTH_SHORT).show()
+                        Log.e("PlacesAPI", "HTTP error ${response.code()}: $error")
+                        Toast.makeText(this@CreateTripActivity, "error: ${response.message()}", Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Log.e("PlacesAPI", "Exception: ${'$'}{e.message}", e)
-                    Toast.makeText(this@CreateTripActivity, "שגיאת רשת: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
+                    Log.e("PlacesAPI", "Exception: ${e.message}", e)
+                    Toast.makeText(this@CreateTripActivity, " Network error: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 withContext(Dispatchers.Main) {
@@ -242,7 +272,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
         return photo?.let {
             "https://maps.googleapis.com/maps/api/place/photo" +
                     "?maxwidth=400" +
-                    "&photoreference=${'$'}{it.photo_reference}" +
+                    "&photoreference=${it.photo_reference}" +
                     "&key=AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk"
         }
     }
@@ -251,15 +281,39 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
         if (selectedTrips.none { it.id == trip.id }) {
             selectedTrips.add(trip)
             selectedTripsAdapter.notifyDataSetChanged()
-            Toast.makeText(this, "${'$'}{trip.name} added to your trip", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "${trip.name} added to your trip", Toast.LENGTH_SHORT).show()
+
+            val lat = trip.lat
+            val lon = trip.lon
+            if (lat != null && lon != null) {
+                val latLng = LatLng(lat, lon)
+                pointsOfInterest.add(latLng)
+                googleMap.addMarker(MarkerOptions().position(latLng).title(trip.name))
+                redrawPolyline()
+
+            }
+            trip.imageUrl?.let { imageUrl ->
+                imageAdapter.addImageFromUrl(imageUrl)
+            }
         }
     }
 
     private fun removeSelectedTrip(trip: TripSearchResult) {
         selectedTrips.removeAll { it.id == trip.id }
         selectedTripsAdapter.notifyDataSetChanged()
-    }
 
+        trip.lat?.let { lat ->
+            trip.lon?.let { lon ->
+                val point = LatLng(lat, lon)
+                pointsOfInterest.removeAll { it.latitude == point.latitude && it.longitude == point.longitude }
+                redrawPolyline()
+            }
+        }
+        trip.imageUrl?.let { imageUrl ->
+            val imageUri = Uri.parse(imageUrl)
+            imageAdapter.removeImageUri(imageUri)
+        }
+    }
     private fun saveTrip() {
         val tripName = binding.tripNameEditText.text.toString().trim()
         val description = binding.tripDescriptionEditText.text.toString()
@@ -325,12 +379,12 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
                 finish()
             }
             .addOnFailureListener { e ->
-                Toast.makeText(this, "Error creating trip: ${'$'}{e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error creating trip: ${e.message}", Toast.LENGTH_SHORT).show()
             }
     }
 
     private fun uploadImagesToFirebaseStorage(tripId: String, onComplete: (List<String>) -> Unit) {
-        val storageRef = FirebaseStorage.getInstance().reference.child("trip_images/${'$'}tripId/")
+        val storageRef = FirebaseStorage.getInstance().reference.child("trip_images/$tripId/")
         val uploadedUrls = mutableListOf<String>()
         val images = imageAdapter.getImages()
 
@@ -340,7 +394,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
         }
 
         for ((index, uri) in images.withIndex()) {
-            val fileRef = storageRef.child("image_${'$'}index.jpg")
+            val fileRef = storageRef.child("image_${index}.jpg")
             fileRef.putFile(uri)
                 .continueWithTask { task ->
                     if (!task.isSuccessful) throw task.exception ?: Exception("Upload failed")
@@ -353,7 +407,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "Failed to upload image: ${'$'}{it.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Failed to upload image: ${it.message}", Toast.LENGTH_SHORT).show()
                 }
         }
     }

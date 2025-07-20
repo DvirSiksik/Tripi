@@ -44,7 +44,16 @@ class ImagePagerAdapter(
         images.add(uri)
         notifyItemInserted(images.size - 1)
     }
-
+    fun addImageFromUrl(url: String) {
+        images.add(Uri.parse(url))
+        notifyDataSetChanged()
+    }
+    fun removeImageUri(uri: Uri) {
+        val removed = images.remove(uri)
+        if (removed) {
+            notifyDataSetChanged()
+        }
+    }
     fun removeImage(position: Int) {
         if (position in 0 until images.size) {
             images.removeAt(position)

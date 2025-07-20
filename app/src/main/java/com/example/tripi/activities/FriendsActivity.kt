@@ -37,17 +37,6 @@ class FriendsActivity : AppCompatActivity() {
     }
 
     private fun getSampleFriends(): List<User> {
-        return listOf(
-            User(
-                name = "John Doe",
-                email = "john@example.com",
-                imageRes = R.drawable.ic_trip_placeholder
-            ),
-            User(
-                name = "Jane Smith",
-                email = "jane@example.com",
-                imageRes = R.drawable.ic_trip_placeholder
-            )
-        )
+        return listOf()
     }
 }

@@ -54,7 +54,7 @@ class FriendsAdapter(
 
 
     fun updateData(newFriends: List<User>) {
-        friends = newFriends.toList()  // Create a new list instead of casting
+        friends = newFriends.toList()
         notifyDataSetChanged()
     }
 }

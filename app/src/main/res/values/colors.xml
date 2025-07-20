@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#2196F3</color>  <!-- Changed to blue -->
-    <color name="purple_700">#1976D2</color>  <!-- Changed to darker blue -->
-    <color name="teal_200">#FF80DEEA</color>  <!-- Lighter teal -->
-    <color name="teal_700">#FF00838F</color>  <!-- Darker teal -->
+    <color name="purple_500">#2196F3</color>
+    <color name="purple_700">#1976D2</color>
+    <color name="teal_200">#FF80DEEA</color>
+    <color name="teal_700">#FF00838F</color>
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="primary">#2196F3</color>  <!-- Blue 500 -->
-    <color name="primary_dark">#1976D2</color>  <!-- Blue 700 -->
-    <color name="primary_light">#BBDEFB</color>  <!-- Blue 100 -->
-    <color name="accent">#FF9800</color>  <!-- Orange 500 -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="primary_light">#BBDEFB</color>
+    <color name="accent">#FF9800</color>
 
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
@@ -20,10 +20,10 @@
 
     <color name="background">#FFFFFF</color>
     <color name="surface">#FFFFFF</color>
-    <color name="card_background">#FAFAFA</color>  <!-- Slightly lighter -->
+    <color name="card_background">#FAFAFA</color>
 
-    <color name="divider">#E0E0E0</color>  <!-- Softer gray -->
-    <color name="card_stroke">#E0E0E0</color>  <!-- Matching divider -->
+    <color name="divider">#E0E0E0</color>
+    <color name="card_stroke">#E0E0E0</color>
 
     <color name="success">#4CAF50</color>
     <color name="warning">#FFC107</color>
@@ -59,4 +59,5 @@
     <color name="gray_700">#616161</color>
     <color name="gray_800">#424242</color>
     <color name="gray_900">#212121</color>
+    <color name="gray_light">#EEEEEE</color>
 </resources>

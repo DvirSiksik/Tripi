@@ -7,7 +7,6 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.tripi.R
 import com.example.tripi.models.ItineraryItem
-import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 

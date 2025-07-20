@@ -33,7 +33,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp"
-            android:paddingBottom="60dp"> <!-- הפחתתי עוד יותר את ה-padding התחתון -->
+            android:paddingBottom="60dp">
 
             <LinearLayout
                 android:layout_width="match_parent"

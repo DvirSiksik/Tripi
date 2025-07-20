@@ -119,7 +119,6 @@
         android:background="@drawable/circle_background"
         android:layout_marginEnd="16dp"/>
 
-        <!-- Add these buttons at the bottom of your LinearLayout -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/editProfileButton"
             android:layout_width="match_parent"

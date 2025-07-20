@@ -1,5 +1,6 @@
 package com.example.tripi.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -31,8 +32,9 @@ class MyTripsActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         tripsAdapter = TripsAdapter(tripsList) { trip ->
-            Toast.makeText(this, "Selected: ${trip.name}", Toast.LENGTH_SHORT).show()
-            // אפשר לפתוח TripDetailsActivity בהמשך
+            val intent = Intent(this, TripDetailsActivity::class.java)
+            intent.putExtra("TRIP", trip)
+            startActivity(intent)
         }
         binding.tripsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@MyTripsActivity)
@@ -42,7 +44,7 @@ class MyTripsActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
         supportActionBar?.title = "My Trips"
     }
 

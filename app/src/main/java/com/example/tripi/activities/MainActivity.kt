@@ -60,9 +60,6 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
-
-        // If you have a tripsRecyclerView somewhere else, set it up here.
-        // If not, you can remove or comment out this function.
     }
 
     private fun setupBottomNavigation() {

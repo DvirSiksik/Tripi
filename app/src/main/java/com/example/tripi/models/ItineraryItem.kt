@@ -11,6 +11,6 @@ data class ItineraryItem(
     val time: Timestamp = Timestamp.now(),
     val location: GeoPoint? = null,
     val cost: Double = 0.0,
-    val category: String = "", // Flight, Hotel, Activity, etc.
+    val category: String = "",
     val address: String = ""
 )

@@ -32,7 +32,6 @@ class TripsAdapter(
             tripDescription.text = trip.description
             tripCategories.text = trip.categories.take(3).joinToString(" • ")
 
-            // Load only the first image URL if available, else null
             val imageUrl = trip.imageUrls.firstOrNull()
             Glide.with(root.context)
                 .load(imageUrl)

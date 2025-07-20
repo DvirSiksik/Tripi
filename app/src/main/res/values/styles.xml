@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Text appearances -->
+
     <style name="TextAppearance.Tripi.Headline6" parent="TextAppearance.MaterialComponents.Headline6">
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">20sp</item>
@@ -16,7 +16,7 @@
         <item name="android:textSize">16sp</item>
     </style>
 
-    <!-- Button style -->
+
     <style name="Widget.Tripi.Button" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/blue_500</item>
         <item name="android:textColor">@color/white</item>
@@ -24,7 +24,7 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <!-- Card style -->
+
     <style name="Widget.Tripi.Card" parent="Widget.MaterialComponents.CardView">
         <item name="cardBackgroundColor">@color/card_background</item>
         <item name="cardElevation">4dp</item>
@@ -33,5 +33,5 @@
         <item name="strokeWidth">1dp</item>
     </style>
 
-    <!-- Other component styles can go here -->
+
 </resources>

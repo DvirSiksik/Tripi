@@ -1,33 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme -->
+
     <style name="Theme.Tripi" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary colors -->
+
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryVariant">@color/blue_700</item>
         <item name="colorOnPrimary">@color/white</item>
 
-        <!-- Secondary colors -->
+
         <item name="colorSecondary">@color/orange_500</item>
         <item name="colorSecondaryVariant">@color/orange_700</item>
         <item name="colorOnSecondary">@color/black</item>
 
-        <!-- Background colors -->
+
         <item name="android:windowBackground">@color/background</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
-        <!-- Text appearances -->
         <item name="textAppearanceHeadline6">@style/TextAppearance.Tripi.Headline6</item>
         <item name="textAppearanceSubtitle1">@style/TextAppearance.Tripi.Subtitle1</item>
 
-        <!-- Component styles -->
+
         <item name="materialButtonStyle">@style/Widget.Tripi.Button</item>
         <item name="cardViewStyle">@style/Widget.Tripi.Card</item>
     </style>
 
-    <!-- Dark theme variation -->
     <style name="Theme.Tripi.Dark" parent="Theme.Tripi">
-        <!-- Override colors for dark theme -->
+
         <item name="android:windowBackground">@color/gray_900</item>
         <item name="textAppearanceHeadline6">@style/TextAppearance.Tripi.Headline6.Dark</item>
     </style>
