@@ -23,6 +23,7 @@ class ProfileActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
+        setupBottomNavigation()
         loadUserData()
         setupListeners()
     }
@@ -61,20 +62,38 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-//    private fun setupBottomNavigation() {
-//        binding.bottomNavigation.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.navigation_home -> {
-//                    startActivity(Intent(this, MyTripsActivity::class.java))
-//                    true
-//                }
-//                R.id.navigation_trips -> true
-//                R.id.navigation_profile -> {
-//                    startActivity(Intent(this, ProfileActivity::class.java))
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
-//    }
+    private fun setupBottomNavigation() {
+        when (this) {
+            is MainActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_home
+            is MyTripsActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_trips
+            is ProfileActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_profile
+        }
+
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_trips -> {
+                    if (this !is MyTripsActivity) {
+                        startActivity(Intent(this, MyTripsActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+                R.id.navigation_home -> {
+                    if (this !is MainActivity) {
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+                R.id.navigation_profile -> {
+                    if (this !is ProfileActivity) {
+                        startActivity(Intent(this, ProfileActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
+    }
 }

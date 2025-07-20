@@ -1,32 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-
     <style name="Theme.Tripi" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-
-        <item name="colorPrimary">@color/blue_500</item>
-        <item name="colorPrimaryVariant">@color/blue_700</item>
+        <item name="colorPrimary">@color/blue_600</item>
+        <item name="colorPrimaryVariant">@color/blue_800</item>
         <item name="colorOnPrimary">@color/white</item>
-
-
         <item name="colorSecondary">@color/orange_500</item>
         <item name="colorSecondaryVariant">@color/orange_700</item>
-        <item name="colorOnSecondary">@color/black</item>
-
-
+        <item name="colorOnSecondary">@color/white</item>
         <item name="android:windowBackground">@color/background</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-
+        <item name="android:navigationBarColor">?attr/colorPrimaryVariant</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
         <item name="textAppearanceHeadline6">@style/TextAppearance.Tripi.Headline6</item>
         <item name="textAppearanceSubtitle1">@style/TextAppearance.Tripi.Subtitle1</item>
-
-
+        <item name="textAppearanceSubtitle2">@style/TextAppearance.Tripi.Subtitle2</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.Tripi.Caption</item>
         <item name="materialButtonStyle">@style/Widget.Tripi.Button</item>
         <item name="cardViewStyle">@style/Widget.Tripi.Card</item>
+        <item name="materialCardViewStyle">@style/Widget.Tripi.Card</item>
+        <item name="elevationOverlayEnabled">true</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Tripi.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Tripi.MediumComponent</item>
+    </style>
+    <style name="Theme.Tripi.Dark" parent="Theme.Tripi">
+        <item name="android:windowBackground">@color/gray_900</item>
+        <item name="colorSurface">@color/gray_800</item>
+        <item name="colorOnSurface">@color/gray_100</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.Tripi.Headline6.Dark</item>
+        <item name="cardViewStyle">@style/Widget.Tripi.Card.Dark</item>
+    </style>
+    <style name="ShapeAppearance.Tripi.SmallComponent" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
     </style>
 
-    <style name="Theme.Tripi.Dark" parent="Theme.Tripi">
-
-        <item name="android:windowBackground">@color/gray_900</item>
-        <item name="textAppearanceHeadline6">@style/TextAppearance.Tripi.Headline6.Dark</item>
+    <style name="ShapeAppearance.Tripi.MediumComponent" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
     </style>
 </resources>

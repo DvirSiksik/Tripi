@@ -5,55 +5,88 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="?attr/colorSurface">
 
     <ImageView
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:src="@drawable/ic_tripi"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="32dp"
+        android:contentDescription="@string/app_logo"/>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Tripi.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        app:errorEnabled="true">
+        android:layout_marginBottom="16dp"
+        app:errorEnabled="true"
+        app:errorTextColor="@color/error">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/emailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
-            android:inputType="textEmailAddress"/>
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
+            android:maxLines="1"
+            android:textColor="?attr/colorOnSurface"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        style="@style/Widget.Tripi.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        app:errorEnabled="true">
+        android:layout_marginBottom="24dp"
+        app:errorEnabled="true"
+        app:errorTextColor="@color/error"
+        app:passwordToggleEnabled="true"
+        app:passwordToggleTint="?attr/colorPrimary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Password"
-            android:inputType="textPassword"/>
+            android:hint="@string/password"
+            android:inputType="textPassword"
+            android:textColor="?attr/colorOnSurface"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
+        style="@style/Widget.Tripi.Button"
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login"
+        android:text="@string/login"
         android:layout_marginBottom="16dp"/>
 
     <TextView
-        android:id="@+id/registerTextView"
+        android:id="@+id/forgotPasswordTextView"
+        style="@style/Widget.Tripi.Button.Text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Don't have an account? Register"
-        android:textColor="@color/blue_500"
-        android:layout_gravity="center_horizontal"/>
+        android:text="@string/forgot_password"
+        android:layout_marginBottom="24dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dont_have_account"
+            android:textColor="?attr/colorOnSurface"/>
+
+        <TextView
+            android:id="@+id/registerTextView"
+            style="@style/Widget.Tripi.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/register"
+            android:layout_marginStart="4dp"/>
+    </LinearLayout>
 
 </LinearLayout>

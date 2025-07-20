@@ -71,7 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="400dp"
-            android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp" />
 
             <TextView
                 android:id="@+id/noTripsMessage"
@@ -92,13 +92,13 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="72dp"
-    android:contentDescription="Add new trip"
-    android:src="@drawable/ic_add"
-    app:tint="@android:color/white"
-    app:backgroundTint="@color/purple_500"
-    app:layout_anchor="@id/bottomNavigation"
-    app:layout_anchorGravity="top|end"
-    app:elevation="8dp" />
+        android:contentDescription="Add new trip"
+        android:src="@drawable/ic_add"
+        app:tint="@android:color/white"
+        app:backgroundTint="@color/purple_500"
+        app:layout_anchor="@id/bottomNavigation"
+        app:layout_anchorGravity="top|end"
+        app:elevation="8dp" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"

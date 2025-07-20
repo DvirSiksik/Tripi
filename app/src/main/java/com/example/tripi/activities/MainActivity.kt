@@ -63,15 +63,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
+        when (this) {
+            is MainActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_home
+            is MyTripsActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_trips
+            is ProfileActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_profile
+        }
+
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.navigation_home -> true
                 R.id.navigation_trips -> {
-                    startActivity(Intent(this, MyTripsActivity::class.java))
+                    if (this !is MyTripsActivity) {
+                        startActivity(Intent(this, MyTripsActivity::class.java))
+                        finish()
+                    }
+                    true
+                }
+                R.id.navigation_home -> {
+                    if (this !is MainActivity) {
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
+                    }
                     true
                 }
                 R.id.navigation_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
+                    if (this !is ProfileActivity) {
+                        startActivity(Intent(this, ProfileActivity::class.java))
+                        finish()
+                    }
                     true
                 }
                 else -> false

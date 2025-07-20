@@ -1,54 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#2196F3</color>
-    <color name="purple_700">#1976D2</color>
-    <color name="teal_200">#FF80DEEA</color>
-    <color name="teal_700">#FF00838F</color>
-
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-
-    <color name="primary">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="primary_light">#BBDEFB</color>
-    <color name="accent">#FF9800</color>
-
+    <color name="primary">#4CAF50</color>
+    <color name="primary_dark">#125416</color>
+    <color name="primary_light">#C5CAE9</color>
+    <color name="accent">#FF5722</color>
     <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="text_tertiary">#BDBDBD</color>
-
+    <color name="text_secondary">#424242</color>
+    <color name="text_tertiary">#757575</color>
     <color name="background">#FFFFFF</color>
     <color name="surface">#FFFFFF</color>
-    <color name="card_background">#FAFAFA</color>
-
+    <color name="card_background">#F5F5F5</color>
     <color name="divider">#E0E0E0</color>
-    <color name="card_stroke">#E0E0E0</color>
-
+    <color name="card_stroke">#BDBDBD</color>
     <color name="success">#4CAF50</color>
     <color name="warning">#FFC107</color>
     <color name="error">#F44336</color>
-
-    <color name="blue_50">#E3F2FD</color>
-    <color name="blue_100">#BBDEFB</color>
-    <color name="blue_200">#90CAF9</color>
-    <color name="blue_300">#64B5F6</color>
-    <color name="blue_400">#42A5F5</color>
-    <color name="blue_500">#2196F3</color>
-    <color name="blue_600">#1E88E5</color>
-    <color name="blue_700">#1976D2</color>
-    <color name="blue_800">#1565C0</color>
-
-    <color name="orange_50">#FFF3E0</color>
-    <color name="orange_100">#FFE0B2</color>
-    <color name="orange_200">#FFCC80</color>
-    <color name="orange_300">#FFB74D</color>
-    <color name="orange_400">#FFA726</color>
-    <color name="orange_500">#FF9800</color>
-    <color name="orange_600">#FB8C00</color>
-    <color name="orange_700">#F57C00</color>
-
-
+    <color name="blue_50">#E8EAF6</color>
+    <color name="blue_100">#C5CAE9</color>
+    <color name="blue_200">#9FA8DA</color>
+    <color name="blue_300">#7986CB</color>
+    <color name="blue_400">#5C6BC0</color>
+    <color name="blue_500">#3F51B5</color>
+    <color name="blue_600">#3949AB</color>
+    <color name="blue_700">#303F9F</color>
+    <color name="blue_800">#283593</color>
+    <color name="orange_50">#FBE9E7</color>
+    <color name="orange_100">#FFCCBC</color>
+    <color name="orange_200">#FFAB91</color>
+    <color name="orange_300">#FF8A65</color>
+    <color name="orange_400">#FF7043</color>
+    <color name="orange_500">#FF5722</color>
+    <color name="orange_600">#F4511E</color>
+    <color name="orange_700">#E64A19</color>
     <color name="gray_50">#FAFAFA</color>
     <color name="gray_100">#F5F5F5</color>
     <color name="gray_200">#EEEEEE</color>
@@ -60,4 +50,9 @@
     <color name="gray_800">#424242</color>
     <color name="gray_900">#212121</color>
     <color name="gray_light">#EEEEEE</color>
+    <color name="trip_card_background">#E3F2FD</color>
+    <color name="card_background_dark">#424242</color>
+    <color name="card_stroke_dark">#616161</color>
+    <color name="schedule_header">#BBDEFB</color>
+    <color name="event_time">#5C6BC0</color>
 </resources>

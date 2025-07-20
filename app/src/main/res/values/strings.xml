@@ -8,4 +8,16 @@
     <string name="trip_location_sample">Nepal</string>
     <string name="friends_count_sample">3 Friends</string>
     <string name="places_count_sample">5 Places</string>
+    <string name="app_logo">Tripi Logo</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="dont_have_account">Don\'t have an account?</string>
+    <string name="register">Register</string>
+    <string name="main_title">Explore the new world</string>
+    <string name="upcoming_trips">My Upcoming Trips</string>
+    <string name="recommended_trips">Recommended Trips</string>
+    <string name="no_trips_message">No trips planned yet</string>
+    <string name="add_trip">Add new trip</string>
 </resources>
