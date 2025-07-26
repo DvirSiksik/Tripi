@@ -110,7 +110,7 @@ class MyTripsActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        updateBottomNavSelection() // עדכן בהתחלה
+        updateBottomNavSelection()
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             val targetActivity = when (item.itemId) {

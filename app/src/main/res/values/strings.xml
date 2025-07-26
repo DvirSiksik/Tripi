@@ -20,4 +20,37 @@
     <string name="recommended_trips">Recommended Trips</string>
     <string name="no_trips_message">No trips planned yet</string>
     <string name="add_trip">Add new trip</string>
+    <string name="change_profile_picture">Change Profile Picture</string>
+    <string name="name">Name</string>
+    <string name="change_password">Change Password</string>
+    <string name="current_password">Current Password</string>
+    <string name="new_password">New Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="profile_image">Profile Image</string>
+    <string name="profile_updated_successfully">Profile updated successfully</string>
+    <string name="error_updating_profile">Error updating profile</string>
+    <string name="password_updated_successfully">Password updated successfully</string>
+    <string name="error_updating_password">Error updating password: %1$s</string>
+    <string name="incorrect_current_password">Current password is incorrect</string>
+    <string name="passwords_dont_match">Passwords don\'t match</string>
+    <string name="password_too_short">Password must be at least 6 characters</string>
+    <string name="fill_all_fields">Please fill all fields</string>
+    <string name="error_uploading_image">Error uploading image</string>
+    <string name="error_updating_email">Error updating email: %1$s</string>
+    <string name="registration_success_with_verification">Registration successful! A verification email has been sent to your email address.</string>
+    <string name="error_sending_verification">Error sending verification email</string>
+    <string name="error_saving_user_data">Error saving user data: %s</string>
+    <string name="registration_failed">Registration failed: %s</string>
+    <string name="phone">Phone Number</string>
+    <string name="name_required">Please enter a name</string>
+    <string name="email_required">Please enter an email</string>
+    <string name="error_getting_image_url">Error getting image URL</string>
+    <string name="permission_required">Permission required to select images</string>
+    <string name="error_selecting_image">Error selecting image</string>
+    <string name="error_opening_picker">Error opening image picker</string>
+    <string name="error_getting_url">Error getting image URL</string>
+    <string name="user_not_authenticated">User not authenticated</string>
+    <string name="error_loading_profile">Error loading profile data</string>
+
 </resources>

@@ -77,6 +77,7 @@
                     android:padding="16dp">
 
                     <TextView
+                        android:id="@+id/totalTripsTextView"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="12 trips"
@@ -92,36 +93,22 @@
                         android:layout_marginBottom="8dp">
 
                         <TextView
+                            android:id="@+id/myTripsCountTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="35 Places"
+                            android:text="0 My Trips"
                             android:textColor="@color/text_secondary"
                             android:layout_marginEnd="16dp"/>
 
                         <TextView
+                            android:id="@+id/sharedTripsCountTextView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="84 Friends"
+                            android:text="0 Shared Trips"
                             android:textColor="@color/text_secondary"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Friendstrips"
-                android:textSize="18sp"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/friendsRecyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                tools:listitem="@layout/item_friend"/>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/editProfileButton"

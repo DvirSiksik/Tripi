@@ -7,8 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.example.tripi.R
 import com.example.tripi.databinding.ActivityProfileBinding
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.QuerySnapshot
 
 class ProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivityProfileBinding
@@ -47,7 +49,37 @@ class ProfileActivity : AppCompatActivity() {
                         .circleCrop()
                         .into(binding.profileImageView)
                 }
+                loadTripsData(user.uid)
             }
+            .addOnFailureListener {
+                Toast.makeText(this, "Failed to load user data", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun loadTripsData(userId: String) {
+        val currentUser = auth.currentUser
+        val userEmail = currentUser?.email ?: ""
+        val myTripsQuery = db.collection("trips").whereEqualTo("creatorId", userId)
+        val sharedTripsQuery = db.collection("trips")
+            .whereArrayContainsAny("sharedWith", listOf(userId, userEmail))
+
+        Tasks.whenAllSuccess<QuerySnapshot>(
+            myTripsQuery.get(),
+            sharedTripsQuery.get()
+        ).addOnSuccessListener { results ->
+            val myTrips = (results[0] as QuerySnapshot)
+            val sharedTrips = (results[1] as QuerySnapshot)
+            val myTripIds = myTrips.documents.map { it.id }
+            val uniqueSharedTrips = sharedTrips.documents.filterNot { myTripIds.contains(it.id) }
+            val myTripsCount = myTrips.size()
+            val sharedTripsCount = uniqueSharedTrips.size
+            val totalTrips = myTripsCount + sharedTripsCount
+            binding.totalTripsTextView.text = "$totalTrips Trips"
+            binding.myTripsCountTextView.text = "$myTripsCount My Trips"
+            binding.sharedTripsCountTextView.text = "$sharedTripsCount Shared With Me"
+        }.addOnFailureListener {
+            Toast.makeText(this, "Failed to load trips data", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun setupListeners() {
@@ -58,10 +90,9 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         binding.editProfileButton.setOnClickListener {
-            // Implement profile editing
+            startActivity(Intent(this, EditProfileActivity::class.java))
         }
     }
-
     override fun onResume() {
         super.onResume()
         updateBottomNavSelection()
@@ -72,12 +103,11 @@ class ProfileActivity : AppCompatActivity() {
             is MainActivity -> R.id.navigation_home
             is MyTripsActivity -> R.id.navigation_trips
             is ProfileActivity -> R.id.navigation_profile
-            else -> R.id.navigation_home // default
+            else -> R.id.navigation_home
         }
     }
-
     private fun setupBottomNavigation() {
-        updateBottomNavSelection() // עדכן בהתחלה
+        updateBottomNavSelection()
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
             val targetActivity = when (item.itemId) {
@@ -88,7 +118,7 @@ class ProfileActivity : AppCompatActivity() {
             }
 
             if (this::class.java == targetActivity) {
-                return@setOnItemSelectedListener true // כבר בטאב הזה
+                return@setOnItemSelectedListener true
             }
 
             startActivity(Intent(this, targetActivity).apply {
