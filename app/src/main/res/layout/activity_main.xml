@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginBottom="24dp">
+                android:padding="8dp">
 
                 <TextView
                     android:id="@+id/closestTripTitleText"
@@ -47,14 +47,26 @@
                     android:layout_height="wrap_content"
                     android:text="My Upcoming Trips"
                     android:textSize="18sp"
-                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    android:gravity="center"/>
+
+                <TextView
+                    android:id="@+id/currentTripNameText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/purple_500"
                     android:gravity="center"
-                    android:layout_marginBottom="4dp" />
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp"/>
 
                 <androidx.viewpager2.widget.ViewPager2
                     android:id="@+id/closestTripsViewPager"
                     android:layout_width="match_parent"
-                    android:layout_height="220dp" />
+                    android:layout_height="220dp"
+                    android:clipToPadding="false"
+                    android:paddingStart="30dp"
+                    android:paddingEnd="30dp"/>
             </LinearLayout>
 
             <TextView
@@ -71,7 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:minHeight="400dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="25dp" />
 
             <TextView
                 android:id="@+id/noTripsMessage"

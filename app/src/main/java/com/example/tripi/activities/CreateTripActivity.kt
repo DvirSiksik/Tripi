@@ -49,6 +49,11 @@ import android.os.Looper
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
+import kotlinx.coroutines.tasks.await
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.File
+import java.io.IOException
 
 
 class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -393,22 +398,48 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             return
         }
 
-        for ((index, uri) in images.withIndex()) {
-            val fileRef = storageRef.child("image_${index}.jpg")
-            fileRef.putFile(uri)
-                .continueWithTask { task ->
-                    if (!task.isSuccessful) throw task.exception ?: Exception("Upload failed")
-                    fileRef.downloadUrl
-                }
-                .addOnSuccessListener { url ->
-                    uploadedUrls.add(url.toString())
+        val client = OkHttpClient()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            for ((index, uri) in images.withIndex()) {
+                try {
+                    val fileUri = if (uri.scheme == "http" || uri.scheme == "https") {
+                        val request = Request.Builder().url(uri.toString()).build()
+                        val response = client.newCall(request).execute()
+                        val responseBody = response.body() ?: throw IOException("Response body is null for $uri")
+                        val inputStream = responseBody.byteStream()
+                        val file = File.createTempFile("image_${index}_", ".jpg", cacheDir)
+                        file.outputStream().use { output ->
+                            inputStream.copyTo(output)
+                        }
+                        Uri.fromFile(file)
+                    } else {
+                        uri
+                    }
+
+                    val fileRef = storageRef.child("image_${index}.jpg")
+                    val uploadTask = fileRef.putFile(fileUri).continueWithTask { task ->
+                        if (!task.isSuccessful) throw task.exception ?: Exception("Upload failed")
+                        fileRef.downloadUrl
+                    }
+
+                    val downloadUrl = uploadTask.await()
+                    uploadedUrls.add(downloadUrl.toString())
+
                     if (uploadedUrls.size == images.size) {
-                        onComplete(uploadedUrls)
+                        withContext(Dispatchers.Main) { onComplete(uploadedUrls) }
+                    }
+
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@CreateTripActivity,
+                            "Failed to upload image: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Failed to upload image: ${it.message}", Toast.LENGTH_SHORT).show()
-                }
+            }
         }
     }
 }

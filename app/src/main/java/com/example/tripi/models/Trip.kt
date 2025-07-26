@@ -7,13 +7,13 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Trip(
     val id: String = "",
-    val name: String = "",
+    var name: String = "",
     val startDate: Timestamp = Timestamp.now(),
     val endDate: Timestamp = Timestamp.now(),
     val lat: Double = 0.0,
     val lon: Double = 0.0,
     val imageUrls: List<String> = emptyList(),
-    val description: String = "",
+    var description: String = "",
     val durationMinutes: Int = 60,
     val categories: List<String> = emptyList(),
     val points: List<Map<String, Double>> = emptyList(),

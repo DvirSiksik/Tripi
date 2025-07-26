@@ -12,6 +12,7 @@ import com.example.tripi.adapters.TripsPagerAdapter
 import com.example.tripi.databinding.ActivityMainBinding
 import com.example.tripi.models.Trip
 import com.google.firebase.Timestamp
+import androidx.viewpager2.widget.ViewPager2
 import kotlinx.coroutines.*
 import kotlin.random.Random
 import com.example.tripi.network.RetrofitInstance
@@ -42,15 +43,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupClosestTripsRecyclerView() {
         binding.closestTripsViewPager.adapter = TripsPagerAdapter(tripsList) { trip ->
-            val intent = Intent(this, TripDetailsActivity::class.java).apply {
-                putExtra("TRIP_ID", trip.id)
-                putExtra("TRIP_NAME", trip.name)
-                putStringArrayListExtra("TRIP_IMAGES", ArrayList(trip.imageUrls))
+        }
+        binding.closestTripsViewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                updateCurrentTripName(position)
             }
-            startActivity(intent)
+        })
+        if (tripsList.isNotEmpty()) {
+            updateCurrentTripName(0)
         }
     }
 
+    private fun updateCurrentTripName(position: Int) {
+        if (position in 0 until tripsList.size) {
+            binding.currentTripNameText.animate()
+                .alpha(0f)
+                .setDuration(150)
+                .withEndAction {
+                    binding.currentTripNameText.text = tripsList[position].name
+                    binding.currentTripNameText.animate()
+                        .alpha(1f)
+                        .setDuration(150)
+                        .start()
+                }
+                .start()
+        }
+    }
     private fun setupTripsRecyclerView() {
         tripsAdapter = TripsAdapter(tripsList) { trip ->
             val intent = Intent(this, TripDetailsActivity::class.java).apply {
@@ -62,41 +81,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBottomNavigation() {
-        when (this) {
-            is MainActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_home
-            is MyTripsActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_trips
-            is ProfileActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_profile
-        }
+    override fun onResume() {
+        super.onResume()
+        updateBottomNavSelection()
+    }
 
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_trips -> {
-                    if (this !is MyTripsActivity) {
-                        startActivity(Intent(this, MyTripsActivity::class.java))
-                        finish()
-                    }
-                    true
-                }
-                R.id.navigation_home -> {
-                    if (this !is MainActivity) {
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                    }
-                    true
-                }
-                R.id.navigation_profile -> {
-                    if (this !is ProfileActivity) {
-                        startActivity(Intent(this, ProfileActivity::class.java))
-                        finish()
-                    }
-                    true
-                }
-                else -> false
-            }
+    private fun updateBottomNavSelection() {
+        binding.bottomNavigation.selectedItemId = when (this) {
+            is MainActivity -> R.id.navigation_home
+            is MyTripsActivity -> R.id.navigation_trips
+            is ProfileActivity -> R.id.navigation_profile
+            else -> R.id.navigation_home
         }
     }
 
+    private fun setupBottomNavigation() {
+        updateBottomNavSelection()
+
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            val targetActivity = when (item.itemId) {
+                R.id.navigation_home -> MainActivity::class.java
+                R.id.navigation_trips -> MyTripsActivity::class.java
+                R.id.navigation_profile -> ProfileActivity::class.java
+                else -> return@setOnItemSelectedListener false
+            }
+
+            if (this::class.java == targetActivity) {
+                return@setOnItemSelectedListener true
+            }
+
+            startActivity(Intent(this, targetActivity).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            })
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+            true
+        }
+    }
     private fun setupListeners() {
         binding.addTripButton.setOnClickListener {
             if (selectedSuggestions.isNotEmpty()) {
@@ -176,7 +196,6 @@ class MainActivity : AppCompatActivity() {
                 }.sortedBy { it.startDate }
                 tripsList.clear()
                 tripsList.addAll(upcomingTrips)
-                // Update ViewPager adapter
                 (binding.closestTripsViewPager.adapter as? TripsPagerAdapter)?.notifyDataSetChanged()
             }
             .addOnFailureListener { e ->

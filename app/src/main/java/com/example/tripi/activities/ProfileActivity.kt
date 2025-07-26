@@ -62,38 +62,40 @@ class ProfileActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupBottomNavigation() {
-        when (this) {
-            is MainActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_home
-            is MyTripsActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_trips
-            is ProfileActivity -> binding.bottomNavigation.selectedItemId = R.id.navigation_profile
+    override fun onResume() {
+        super.onResume()
+        updateBottomNavSelection()
+    }
+
+    private fun updateBottomNavSelection() {
+        binding.bottomNavigation.selectedItemId = when (this) {
+            is MainActivity -> R.id.navigation_home
+            is MyTripsActivity -> R.id.navigation_trips
+            is ProfileActivity -> R.id.navigation_profile
+            else -> R.id.navigation_home // default
         }
+    }
+
+    private fun setupBottomNavigation() {
+        updateBottomNavSelection() // עדכן בהתחלה
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_trips -> {
-                    if (this !is MyTripsActivity) {
-                        startActivity(Intent(this, MyTripsActivity::class.java))
-                        finish()
-                    }
-                    true
-                }
-                R.id.navigation_home -> {
-                    if (this !is MainActivity) {
-                        startActivity(Intent(this, MainActivity::class.java))
-                        finish()
-                    }
-                    true
-                }
-                R.id.navigation_profile -> {
-                    if (this !is ProfileActivity) {
-                        startActivity(Intent(this, ProfileActivity::class.java))
-                        finish()
-                    }
-                    true
-                }
-                else -> false
+            val targetActivity = when (item.itemId) {
+                R.id.navigation_home -> MainActivity::class.java
+                R.id.navigation_trips -> MyTripsActivity::class.java
+                R.id.navigation_profile -> ProfileActivity::class.java
+                else -> return@setOnItemSelectedListener false
             }
+
+            if (this::class.java == targetActivity) {
+                return@setOnItemSelectedListener true // כבר בטאב הזה
+            }
+
+            startActivity(Intent(this, targetActivity).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            })
+            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+            true
         }
     }
 }

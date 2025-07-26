@@ -1,5 +1,6 @@
 package com.example.tripi.activities
 
+import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
 import android.content.Intent
@@ -7,12 +8,16 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.example.tripi.R
 import com.example.tripi.adapters.ImagePagerAdapter
 import com.example.tripi.databinding.ActivityTripDetailsBinding
@@ -26,6 +31,8 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import java.text.SimpleDateFormat
+import java.util.*
 
 class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -33,6 +40,17 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var imageAdapter: ImagePagerAdapter
     private var trip: Trip? = null
     private lateinit var googleMap: GoogleMap
+
+    // Image slider variables
+    private lateinit var headerImageHandler: Handler
+    private lateinit var headerImageRunnable: Runnable
+    private val SLIDER_INTERVAL = 60000L
+    private var currentHeaderImageIndex = 0
+    private lateinit var imageUris: MutableList<Uri>
+    private var isSliderRunning = false
+
+    // Edit mode variables
+    private var isEditMode = false
 
     private val pickImages = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
         val tripId = trip?.id ?: return@registerForActivityResult
@@ -47,9 +65,16 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
                     fileRef.downloadUrl
                 }.addOnSuccessListener { url ->
                     val urlStr = url.toString()
-                    imageAdapter.addImage(Uri.parse(urlStr))
+                    imageUris.add(Uri.parse(urlStr))
+                    imageAdapter.notifyDataSetChanged()
                     tripDocRef.update("imageUrls", FieldValue.arrayUnion(urlStr))
                     Toast.makeText(this, "Uploaded image", Toast.LENGTH_SHORT).show()
+
+                    if (imageUris.size == 1) {
+                        updateHeaderImage()
+                    } else if (imageUris.size == 2 && !isSliderRunning) {
+                        startImageSlider()
+                    }
                 }.addOnFailureListener {
                     Toast.makeText(this, "Upload failed: ${it.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -70,28 +95,158 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
         } else {
             finish()
         }
-
-        setupBottomNavigation()
         setupListeners()
+        setupEditButton()
 
-        // Load the map
         val mapFragment = supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment
         mapFragment.getMapAsync(this)
     }
-
     private fun displayTripDetails(trip: Trip) {
         binding.collapsingToolbar.title = trip.name
         binding.tripNameTextView.text = trip.name
-        binding.descriptionTextView.text = trip.description.ifBlank { "No description available." }
+        binding.tripNameEditText.setText(trip.name)
 
-        val imageUris = trip.imageUrls.map { Uri.parse(it) }.toMutableList()
+        try {
+            val startDate = trip.startDate?.toDate() ?: return
+            val endDate = trip.endDate?.toDate() ?: return
+            val isSingleDay = startDate.time == endDate.time
+            val dateFormat = SimpleDateFormat("MMM d, yyyy", Locale.US)
+            binding.dateRangeTextView.text = if (isSingleDay) {
+                dateFormat.format(startDate)
+            } else {
+                "${dateFormat.format(startDate)} - ${dateFormat.format(endDate)}"
+            }
+        } catch (e: Exception) {
+            Log.e("DateError", "Date formatting failed: ${e.message}")
+            binding.dateRangeTextView.text = "Date not available"
+        }
+
+        binding.descriptionTextView.text = trip.description.ifBlank { "No description available." }
+        binding.tripDescriptionEditText.setText(trip.description)
+
+        imageUris = trip.imageUrls.map { Uri.parse(it) }.toMutableList()
         imageAdapter = ImagePagerAdapter(imageUris)
+
         binding.imageViewPager.adapter = imageAdapter
         binding.imageViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
         TabLayoutMediator(binding.tabLayout, binding.imageViewPager) { tab, _ ->
             tab.text = ""
         }.attach()
+
+        if (imageUris.isNotEmpty()) {
+            updateHeaderImage()
+        }
+
+        if (imageUris.size > 1) {
+            startImageSlider()
+        }
+    }
+    private fun setupEditButton() {
+        binding.fabEditTrip.setOnClickListener {
+            if (isEditMode) {
+                saveChanges()
+            } else {
+                enableEditMode()
+            }
+        }
+    }
+
+    private fun enableEditMode() {
+        isEditMode = true
+        binding.tripNameTextView.visibility = View.GONE
+        binding.tripNameEditText.visibility = View.VISIBLE
+        binding.descriptionTextView.visibility = View.GONE
+        binding.tripDescriptionEditText.visibility = View.VISIBLE
+        binding.editControlsLayout.visibility = View.VISIBLE
+        binding.addImageButton.visibility = View.VISIBLE
+        binding.fabEditTrip.setImageResource(R.drawable.ic_check)
+    }
+
+    private fun disableEditMode() {
+        isEditMode = false
+
+        // Hide edit fields
+        binding.tripNameEditText.visibility = View.GONE
+        binding.tripNameTextView.visibility = View.VISIBLE
+
+        binding.tripDescriptionEditText.visibility = View.GONE
+        binding.descriptionTextView.visibility = View.VISIBLE
+
+        // Hide edit controls
+        binding.editControlsLayout.visibility = View.GONE
+        binding.addImageButton.visibility = View.GONE
+
+        // Change FAB back to edit icon
+        binding.fabEditTrip.setImageResource(R.drawable.ic_edit)
+    }
+
+    private fun saveChanges() {
+        val newName = binding.tripNameEditText.text.toString()
+        val newDescription = binding.tripDescriptionEditText.text.toString()
+
+        if (newName.isEmpty()) {
+            Toast.makeText(this, "Trip name cannot be empty", Toast.LENGTH_SHORT).show()
+            return
+        }
+        trip?.name = newName
+        trip?.description = newDescription
+
+        val tripId = trip?.id ?: return
+        FirebaseFirestore.getInstance().collection("trips").document(tripId)
+            .update(
+                "name", newName,
+                "description", newDescription
+            )
+            .addOnSuccessListener {
+                binding.tripNameTextView.text = newName
+                binding.descriptionTextView.text = newDescription
+                disableEditMode()
+                Toast.makeText(this, "Trip updated successfully", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error updating trip: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun startImageSlider() {
+        if (isSliderRunning) return
+
+        headerImageHandler = Handler(Looper.getMainLooper())
+        headerImageRunnable = object : Runnable {
+            override fun run() {
+                if (imageUris.size > 1) {
+                    currentHeaderImageIndex = (currentHeaderImageIndex + 1) % imageUris.size
+                    updateHeaderImage()
+                }
+                headerImageHandler.postDelayed(this, SLIDER_INTERVAL)
+            }
+        }
+
+        isSliderRunning = true
+        headerImageHandler.postDelayed(headerImageRunnable, SLIDER_INTERVAL)
+    }
+
+    private fun stopImageSlider() {
+        if (::headerImageHandler.isInitialized) {
+            headerImageHandler.removeCallbacks(headerImageRunnable)
+        }
+        isSliderRunning = false
+    }
+
+    private fun updateHeaderImage() {
+        if (imageUris.isEmpty()) return
+        if (currentHeaderImageIndex >= imageUris.size) {
+            currentHeaderImageIndex = 0
+        }
+
+        Glide.with(this)
+            .load(imageUris[currentHeaderImageIndex])
+            .transition(DrawableTransitionOptions.withCrossFade(800))
+            .centerCrop()
+            .placeholder(R.drawable.ic_trip_placeholder)
+            .error(R.drawable.ic_trip_placeholder)
+            .into(binding.headerImageView)
     }
 
     override fun onMapReady(map: GoogleMap) {
@@ -111,7 +266,7 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         points.forEachIndexed { index, point ->
             val lat = point["lat"]
-            val lng = point["lng"]?: point["lon"]
+            val lng = point["lng"] ?: point["lon"]
 
             if (lat != null && lng != null) {
                 val latLng = LatLng(lat, lng)
@@ -133,7 +288,6 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
         } else {
             Toast.makeText(this, "No valid points to display on map", Toast.LENGTH_SHORT).show()
         }
-        Log.d("TripPointsDebug", "Points: $points")
     }
 
     private fun setupListeners() {
@@ -158,6 +312,27 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
             downloadManager.enqueue(request)
             Toast.makeText(this, "Downloading image...", Toast.LENGTH_SHORT).show()
         }
+
+        binding.saveButton.setOnClickListener {
+            saveChanges()
+        }
+
+        binding.cancelButton.setOnClickListener {
+            disableEditMode()
+        }
+    }
+
+    override fun onBackPressed() {
+        if (isEditMode) {
+            AlertDialog.Builder(this)
+                .setTitle("Discard changes?")
+                .setMessage("Are you sure you want to discard your changes?")
+                .setPositiveButton("Discard") { _, _ -> disableEditMode() }
+                .setNegativeButton("Keep Editing", null)
+                .show()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -165,20 +340,20 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
         return true
     }
 
-    private fun setupBottomNavigation() {
-        binding.bottomNavigation.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_home -> {
-                    startActivity(Intent(this, MyTripsActivity::class.java))
-                    true
-                }
-                R.id.navigation_trips -> true
-                R.id.navigation_profile -> {
-                    startActivity(Intent(this, ProfileActivity::class.java))
-                    true
-                }
-                else -> false
-            }
+    override fun onPause() {
+        super.onPause()
+        stopImageSlider()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (imageUris.size > 1 && !isSliderRunning) {
+            startImageSlider()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopImageSlider()
     }
 }
