@@ -62,7 +62,6 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
 
 <p align="center">
   <img src="assets/screenshots/trip_details.png" width="220" alt="Trip Details" />
-  <img src="assets/screenshots/friends.png" width="220" alt="Friends Screen" />
   <img src="assets/screenshots/profile.png" width="220" alt="Profile Screen" />
 </p>
 
