@@ -8,12 +8,12 @@ interface TripApiService {
     @GET("textsearch/json")
     suspend fun getRecommendedTrips(
         @Query("query") query: String = "attractions in Israel",
-        @Query("key") apiKey: String = "AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk"
+        @Query("key") apiKey: String = "GOOGLE-APIKEY"
     ): Response<GooglePlacesResponse>
     @GET("textsearch/json")
     suspend fun searchPlaces(
         @Query("query") query: String,
-        @Query("key") apiKey: String= "AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk",
+        @Query("key") apiKey: String= "GOOGLE-APIKEY",
         @Query("language") language: String = "he",
         @Query("region") region: String = "il"
     ): Response<GooglePlacesResponse>

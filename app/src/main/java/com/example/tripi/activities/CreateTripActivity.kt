@@ -278,7 +278,7 @@ class CreateTripActivity : AppCompatActivity(), OnMapReadyCallback {
             "https://maps.googleapis.com/maps/api/place/photo" +
                     "?maxwidth=400" +
                     "&photoreference=${it.photo_reference}" +
-                    "&key=AIzaSyBJXMokRfxMWkbiJEOpRM7i6ck_Y7Ji7Uk"
+                    "&key=GOOGLE-APIKEY"
         }
     }
 
