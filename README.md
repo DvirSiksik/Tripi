@@ -58,13 +58,13 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
 <p align="center">
   <img src="assets/screenshots/login.png" width="220" alt="Login" />
   <img src="assets/screenshots/home.png" width="220" alt="Home" />
-  <img src="assets/screenshots/create_trip.png" width="220" alt="Create Trip" />
+  <img src="assets/screenshots/Create Trip.png" width="220" alt="Create Trip" />
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/trip_details.png" width="220" alt="My Trips" />	
-  <img src="assets/screenshots/trip_details.png" width="220" alt="Trip Details" />
-  <img src="assets/screenshots/profile.png" width="220" alt="Profile" />
+  <img src="assets/screenshots/My Trips.png" width="220" alt="My Trips" />	
+  <img src="assets/screenshots/Trip Details.png" width="220" alt="Trip Details" />
+  <img src="assets/screenshots/Profile.png" width="220" alt="Profile" />
 </p>
 
 ---
