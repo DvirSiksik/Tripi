@@ -75,7 +75,7 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/dvirsiksik/tripi.git
+   git clone https://github.com/DvirSiksik/tripi.git
 2.	Open in Android Studio.
 3.	Configure your API keys:
 	•	google-services.json for Firebase
