@@ -81,19 +81,20 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
 4.	Build and run on an emulator or physical device.
 
 ## 📌 Project Structure
-Tripi/
- ├── app/
- │   ├── activities/         # All activities (screens)
- │   ├── adapters/           # RecyclerView adapters
- │   ├── models/             # Data models
- │   ├── utils/              # Helper classes
- │   ├── res/layout/         # XML layouts
- │   └── assets/screenshots/ # App screenshots
- ├── build.gradle.kts
- └── README.md
+
+	Tripi/
+	 ├── app/
+	 │   ├── activities/         # All activities (screens)
+	 │   ├── adapters/           # RecyclerView adapters
+	 │   ├── models/             # Data models
+	 │   ├── utils/              # Helper classes
+	 │   ├── res/layout/         # XML layouts
+	 │   └── assets/screenshots/ # App screenshots
+	 ├── build.gradle.kts
+	 └── README.md
 
 ## 👨‍💻 Authors	
-	Dvir Siksik
+Dvir Siksik
 
 
 
