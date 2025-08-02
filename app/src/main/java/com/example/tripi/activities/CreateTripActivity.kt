@@ -3,7 +3,6 @@ package com.example.tripi.activities
 import android.Manifest
 import android.app.DatePickerDialog
 import android.content.pm.PackageManager
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.view.inputmethod.EditorInfo

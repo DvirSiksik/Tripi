@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -85,7 +84,7 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun hasImagePermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            true // No permission needed for Android 13+
+            true
         } else {
             ContextCompat.checkSelfPermission(
                 this,

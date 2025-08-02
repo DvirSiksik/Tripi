@@ -1,6 +1,7 @@
 package com.example.tripi.activities
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -124,7 +125,7 @@ class EditProfileActivity : AppCompatActivity() {
 
     private fun hasImagePermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            true // No permission needed for Android 13+
+            true
         } else {
             ContextCompat.checkSelfPermission(
                 this,
@@ -236,6 +237,7 @@ class EditProfileActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("StringFormatInvalid")
     private fun updateFirestoreData(userId: String, name: String, email: String, profileImageUrl: String?) {
         val updates = hashMapOf<String, Any>(
             "name" to name,

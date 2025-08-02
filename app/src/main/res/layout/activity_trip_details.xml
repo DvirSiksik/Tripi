@@ -144,7 +144,6 @@
                     android:textColor="@android:color/white"/>
             </LinearLayout>
 
-            <!-- Photos Section -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -202,7 +201,6 @@
                     app:iconTint="@color/purple_500"/>
             </LinearLayout>
 
-            <!-- Location Section -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

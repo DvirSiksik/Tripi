@@ -3,7 +3,6 @@ package com.example.tripi.activities
 import android.app.AlertDialog
 import android.app.DownloadManager
 import android.content.Context
-import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -41,7 +40,6 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var trip: Trip? = null
     private lateinit var googleMap: GoogleMap
 
-    // Image slider variables
     private lateinit var headerImageHandler: Handler
     private lateinit var headerImageRunnable: Runnable
     private val SLIDER_INTERVAL = 60000L
@@ -49,7 +47,6 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var imageUris: MutableList<Uri>
     private var isSliderRunning = false
 
-    // Edit mode variables
     private var isEditMode = false
 
     private val pickImages = registerForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
@@ -165,19 +162,13 @@ class TripDetailsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun disableEditMode() {
         isEditMode = false
-
-        // Hide edit fields
         binding.tripNameEditText.visibility = View.GONE
         binding.tripNameTextView.visibility = View.VISIBLE
 
         binding.tripDescriptionEditText.visibility = View.GONE
         binding.descriptionTextView.visibility = View.VISIBLE
-
-        // Hide edit controls
         binding.editControlsLayout.visibility = View.GONE
         binding.addImageButton.visibility = View.GONE
-
-        // Change FAB back to edit icon
         binding.fabEditTrip.setImageResource(R.drawable.ic_edit)
     }
 
