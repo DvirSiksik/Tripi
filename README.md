@@ -66,9 +66,9 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
   <img src="assets/screenshots/Trip Details.png" width="220" alt="Trip Details" />
   <img src="assets/screenshots/Profile.png" width="220" alt="Profile" />
 </p>
-<p align="center">
-  <img src="assets/screenshots/Tripi.gif" width="220" alt="Tripi video" />
-</p>
+
+https://github.com/user-attachments/assets/9913af20-8123-4d1d-9d49-52f38d2979a0
+
 ---
 
 ## 🚀 Installation
