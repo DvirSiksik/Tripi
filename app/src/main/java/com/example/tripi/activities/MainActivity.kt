@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.tripi.R
 import com.example.tripi.adapters.TripsAdapter
 import com.example.tripi.adapters.TripsPagerAdapter
@@ -14,7 +13,6 @@ import com.example.tripi.models.Trip
 import com.google.firebase.Timestamp
 import androidx.viewpager2.widget.ViewPager2
 import kotlinx.coroutines.*
-import kotlin.random.Random
 import com.example.tripi.network.RetrofitInstance
 import com.example.tripi.network.TripApiService
 import com.google.firebase.auth.FirebaseAuth

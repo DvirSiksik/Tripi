@@ -105,7 +105,7 @@ class MyTripsActivity : AppCompatActivity() {
             is MainActivity -> R.id.navigation_home
             is MyTripsActivity -> R.id.navigation_trips
             is ProfileActivity -> R.id.navigation_profile
-            else -> R.id.navigation_home // default
+            else -> R.id.navigation_home
         }
     }
 
@@ -121,7 +121,7 @@ class MyTripsActivity : AppCompatActivity() {
             }
 
             if (this::class.java == targetActivity) {
-                return@setOnItemSelectedListener true // כבר בטאב הזה
+                return@setOnItemSelectedListener true
             }
 
             startActivity(Intent(this, targetActivity).apply {
