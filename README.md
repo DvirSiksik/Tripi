@@ -27,7 +27,6 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
 | **CreateTripActivity** | Create a trip with multiple destinations, upload images, and invite friends. | Google Places API, Firebase Storage, Firestore    | ViewPager, Glide, RecyclerView          |
 | **TripDetailsActivity**| Displays full trip info with itinerary, images, and map routes.         | Google Maps SDK, OpenTripMap API                  | Glide, ViewPager, CardView              |
 | **MyTripsActivity**    | Lists all personal and shared trips for quick management.               | Firebase Firestore                                | RecyclerView, LiveData                   |
-| **FriendsActivity**    | Manage friend list and send invitations to trips.                      | Firebase Firestore                                | RecyclerView, Material Buttons           |
 | **ProfileActivity**    | View personal information and profile picture.                         | Firebase Firestore                                | Glide, CardView                          |
 | **EditProfileActivity**| Update user profile details and upload a new image.                    | Firebase Storage, Firestore                       | Glide, ImagePicker                       |
 
