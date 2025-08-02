@@ -80,7 +80,7 @@ With Tripi, you can plan your next adventure, invite friends, add destinations w
 	•	Add Geoapify and OpenTripMap keys in strings.xml
 4.	Build and run on an emulator or physical device.
 
-##📌 Project Structure
+## 📌 Project Structure
 Tripi/
  ├── app/
  │   ├── activities/         # All activities (screens)
@@ -92,7 +92,7 @@ Tripi/
  ├── build.gradle.kts
  └── README.md
 
-##👨‍💻 Authors	
+## 👨‍💻 Authors	
 	Dvir Siksik
 
 
